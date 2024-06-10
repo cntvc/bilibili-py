@@ -1,0 +1,61 @@
+name: Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "bilibili/**"
+      - "tests/**"
+  pull_request:
+    paths:
+      - "bilibili/**"
+      - "tests/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.event.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: 3.11
+          cache: true
+      - name: Install dependencies
+        run: |
+          pdm install --with lint --no-default
+          pdm list
+      - name: Run lint
+        run: pdm lint
+
+  test:
+    needs: [lint]
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: true
+      - name: Install dependencies
+        run: |
+          pdm install --with test
+          pdm list
+      - name: Run test
+        run: pdm test
+      - name: Run coverage test
+        run: pdm cov

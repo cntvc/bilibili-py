@@ -1,0 +1,125 @@
+[project]
+name = "bilibili-py"
+dynamic = ["version"]
+description = "Bilibili API for Python"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "GPL-3.0-only" }
+keywords = ["bilibili", "bilibili-api", "bilibili-py"]
+authors = [{ name = "Charlie Brown", email = "cntvc@outlook.com" }]
+maintainers = [{ name = "Charlie Brown", email = "cntvc@outlook.com" }]
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Natural Language :: Chinese (Simplified)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = []
+
+[project.urls]
+repository = "https://github.com/cntvc/bilibili-py"
+
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+# PDM ================================================================================
+
+[tool.pdm]
+distribution = true
+
+[tool.pdm.build]
+includes = ["bilibili"]
+excludes = ["tests"]
+
+[tool.pdm.version]
+source = "call"
+getter = "bilibili:get_version()"
+
+[tool.pdm.dev-dependencies]
+lint = ["ruff>=0.4.1", "pre-commit>=3.7.0"]
+test = ["pytest>=8.1.1", "pytest-cov>=5.0.0"]
+
+[tool.pdm.scripts]
+lint = "pre-commit run --all-files"
+test = "pytest"
+cov = { shell = """\
+                python -m pytest \
+                    --verbosity=3 \
+                    --cov=bilibili \
+                    tests/
+                """ }
+
+
+# Ruff ================================================================================
+
+[tool.ruff]
+line-length = 100
+fix = true
+src = ["bilibili", "tests"]
+
+[tool.ruff.format]
+# Enable reformatting of code snippets in docstrings.
+docstring-code-format = true
+
+[tool.ruff.lint]
+extend-select = [
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "W",   # pycodestyle
+    "C90", # mccabe
+]
+extend-ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = [
+    "F401", # unused import.
+    "F403", # cannot detect unused vars if we use starred import
+    "F405", # may be undefined, or defined from star imports
+    "E402", # module level import not at top of file
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["bilibili"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+
+# pytest ================================================================================
+
+[tool.pytest.ini_options]
+addopts = "-r aR"
+testpaths = ["tests/"]
+
+
+# coverage ================================================================================
+
+[tool.coverage.run]
+branch = true
+source = ["bilibili/"]
+omit = ["bilibili/__main__.py"]
+
+[tool.coverage.report]
+# Regexes for lines to exclude from consideration
+exclude_lines = [
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+
+    # Don't complain if non-runnable code isn't run:
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+ignore_errors = true
+show_missing = true
+# Don’t report files that are 100% covered
+skip_covered = true
